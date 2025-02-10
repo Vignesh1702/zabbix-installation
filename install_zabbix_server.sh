@@ -43,18 +43,23 @@ if ! systemctl is-active --quiet mysql; then
     fi
 fi
 
-echo "Creating Zabbix database..."
-mysql -uroot -p <<MYSQL_SCRIPT
-CREATE DATABASE ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
-CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';
-GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';
-SET GLOBAL log_bin_trust_function_creators = 1;
-FLUSH PRIVILEGES;
-MYSQL_SCRIPT
+# Create ~/.my.cnf file to store password
+echo "[client]
+user=root
+password=${DB_PASS}" > ~/.my.cnf
+chmod 600 ~/.my.cnf
+
+# Create Zabbix database
+mysql -e "CREATE DATABASE ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;"
+mysql -e "CREATE USER '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"
+mysql -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';"
+mysql -e "FLUSH PRIVILEGES;"
+
+echo "Database setup complete!"
 
 # Import initial schema and data
 echo "Importing Zabbix database schema..."
-zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 -u${DB_USER} -p${DB_PASS} ${DB_NAME}
+zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 -u${DB_USER} --password${DB_PASS} ${DB_NAME}
 
 # Disable log_bin_trust_function_creators after importing
 mysql -uroot -p <<MYSQL_SCRIPT
