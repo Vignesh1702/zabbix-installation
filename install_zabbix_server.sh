@@ -22,12 +22,25 @@ apt update
 # Install Zabbix Server, Frontend, and Agent
 apt install -y zabbix-server-mysql zabbix-frontend-php zabbix-apache-conf zabbix-sql-scripts zabbix-agent
 
-# Install MySQL Server if not already installed
-if ! command -v mysql &> /dev/null; then
-    echo "MySQL Server is not installed. Installing..."
+# Ensure MySQL Server is installed
+echo "Checking if MySQL Server is installed..."
+if ! dpkg -l | grep -q mysql-server; then
+    echo "MySQL Server is NOT installed. Installing now..."
     apt install -y mysql-server
     systemctl enable mysql
     systemctl start mysql
+else
+    echo "MySQL Server is already installed."
+fi
+
+# Verify MySQL is running
+if ! systemctl is-active --quiet mysql; then
+    echo "MySQL service is not running. Starting it now..."
+    systemctl start mysql
+    if ! systemctl is-active --quiet mysql; then
+        echo "ERROR: MySQL failed to start. Check logs with 'sudo journalctl -xeu mysql'."
+        exit 1
+    fi
 fi
 
 echo "Creating Zabbix database..."
