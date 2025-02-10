@@ -1,8 +1,10 @@
 #!/bin/bash
 
+# Ensure script runs as root
 if [ "$(id -u)" -ne 0 ]; then
-    echo "Please run this script as root or use sudo."
-    exit 1
+    echo "Switching to root user..."
+    sudo su -c "bash $0"
+    exit
 fi
 
 echo "Installing Zabbix agent on Ubuntu 24.04..."
