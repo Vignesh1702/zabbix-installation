@@ -59,7 +59,7 @@ echo "Database setup complete!"
 
 # Import initial schema and data
 echo "Importing Zabbix database schema..."
-zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 -u${DB_USER} -${DB_PASS} ${DB_NAME}
+zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 -u${DB_USER} -p${DB_PASS}
 
 # Disable log_bin_trust_function_creators after importing
 mysql -uroot -p <<MYSQL_SCRIPT
