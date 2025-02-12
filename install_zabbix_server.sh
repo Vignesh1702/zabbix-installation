@@ -57,9 +57,18 @@ mysql -e "FLUSH PRIVILEGES;"
 
 echo "Database setup complete!"
 
-# Import initial schema and data
-echo "Importing Zabbix database schema..."
-zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 -u${DB_USER} -p${DB_PASS} ${DB_NAME}
+cat > /tmp/mysql_creds.cnf <<EOF
+[client]
+user=${DB_USER}
+password=${DB_PASS}
+EOF
+
+chmod 600 /tmp/mysql_creds.cnf
+
+zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | mysql --defaults-extra-file=/tmp/mysql_creds.cnf --default-character-set=utf8mb4 ${DB_NAME}
+
+# Optionally, remove the temporary file after the command runs
+rm /tmp/mysql_creds.cnf
 
 # Disable log_bin_trust_function_creators after importing
 mysql -uroot -p <<MYSQL_SCRIPT
